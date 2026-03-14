@@ -1,0 +1,15 @@
+{
+  "name": "restaurant-scraper",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Scrapes Saskatchewan restaurant health inspection data",
+  "main": "scraper.js",
+  "scripts": {
+    "scrape": "node scraper.js",
+    "scrape:limited": "node scraper.js --limit 500",
+    "scrape:full": "node scraper.js --full"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}

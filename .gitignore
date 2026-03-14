@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.DS_Store
+scraper/.scraper_checkpoint.json
+data/restaurants_backup_*.json
+restaurants.json

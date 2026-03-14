@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saskatchewan Restaurant Inspector — Health Inspection Explorer</title>
+  <meta name="description"
+    content="Explore and filter Saskatchewan restaurant health inspection data. Search by location, infraction type, frequency, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/index.css" />
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="header-brand">
+        <div class="logo-icon">🔍</div>
+        <div>
+          <h1>Saskatchewan Restaurant Inspector</h1>
+          <p class="header-subtitle">Health Inspection Data Explorer</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span id="data-timestamp" class="meta-badge">Loading...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Stats -->
+  <section class="stats-bar" id="stats-bar">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-facilities">—</div>
+      <div class="stat-label">Facilities</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-inspections">—</div>
+      <div class="stat-label">Inspections</div>
+    </div>
+    <div class="stat-card stat-card--warn">
+      <div class="stat-value" id="stat-infractions">—</div>
+      <div class="stat-label">Total Infractions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-communities">—</div>
+      <div class="stat-label">Communities</div>
+    </div>
+  </section>
+
+  <!-- Main Layout -->
+  <main class="app-main">
+    <!-- Filter Sidebar -->
+    <aside class="filter-panel" id="filter-panel">
+      <div class="filter-panel-header">
+        <h2>Filters</h2>
+        <button class="btn btn--ghost" id="btn-clear-filters">Clear All</button>
+      </div>
+
+      <!-- Search -->
+      <div class="filter-group">
+        <label for="search-input" class="filter-label">Search</label>
+        <input type="text" id="search-input" class="filter-input" placeholder="Restaurant name or address..." />
+      </div>
+
+      <!-- Community -->
+      <div class="filter-group">
+        <label for="filter-community" class="filter-label">Community</label>
+        <select id="filter-community" class="filter-select">
+          <option value="">All Communities</option>
+        </select>
+      </div>
+
+      <!-- Infraction Type -->
+      <div class="filter-group">
+        <label class="filter-label">Exclude Infraction Category</label>
+        <div class="checkbox-group" id="filter-infraction-type">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Infraction Frequency -->
+      <div class="filter-group">
+        <label for="filter-max-infractions" class="filter-label">
+          Max. Infractions: <span id="infraction-count-display">0</span>
+        </label>
+        <input type="range" id="filter-max-infractions" class="filter-range" min="0" max="50" value="50" />
+      </div>
+
+      <!-- Inspection Type -->
+      <div class="filter-group">
+        <label for="filter-inspection-type" class="filter-label">Inspection Type</label>
+        <select id="filter-inspection-type" class="filter-select">
+          <option value="">All Types</option>
+        </select>
+      </div>
+
+      <!-- Date Range -->
+      <div class="filter-group">
+        <label class="filter-label">Inspection Date Range</label>
+        <div class="date-range">
+          <input type="date" id="filter-date-from" class="filter-input" />
+          <span class="date-range-sep">to</span>
+          <input type="date" id="filter-date-to" class="filter-input" />
+        </div>
+      </div>
+
+      <!-- Sort -->
+      <div class="filter-group">
+        <label for="filter-sort" class="filter-label">Sort By</label>
+        <select id="filter-sort" class="filter-select">
+          <option value="infractions-desc">Most Infractions</option>
+          <option value="infractions-asc" selected>Fewest Infractions</option>
+          <option value="name-asc">Name (A–Z)</option>
+          <option value="name-desc">Name (Z–A)</option>
+          <option value="recent">Most Recent Inspection</option>
+        </select>
+      </div>
+    </aside>
+
+    <!-- Results Area -->
+    <section class="results-area">
+      <div class="results-header">
+        <h2 id="results-count">Loading...</h2>
+        <div class="view-toggle">
+          <button class="view-toggle__btn view-toggle__btn--active" id="btn-view-list" title="List view">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+            </svg>
+          </button>
+          <button class="view-toggle__btn" id="btn-view-map" title="Map view">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+              <circle cx="12" cy="9" r="2.5" />
+            </svg>
+          </button>
+        </div>
+        <button class="btn btn--icon" id="btn-toggle-filters" title="Toggle filters">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M6 12h12M8 18h8" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="results-grid" id="results-grid">
+        <!-- Restaurant cards rendered here -->
+      </div>
+
+      <div id="map-container" class="map-container" style="display:none;">
+        <div id="map" class="map"></div>
+      </div>
+
+      <div class="load-more-container" id="load-more-container" style="display:none;">
+        <button class="btn btn--primary" id="btn-load-more">Load More</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="detail-modal">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <div class="modal-content" id="modal-content">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="/main.js"></script>
+</body>
+
+</html>
