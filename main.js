@@ -62,7 +62,7 @@ async function loadData() {
     </div>`;
 
     try {
-        const resp = await fetch("/restaurants.json");
+        const resp = await fetch(`${import.meta.env.BASE_URL}restaurants.json`);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         allRestaurants = await resp.json();
         // Normalize community names: strip " (Net#)" suffixes
